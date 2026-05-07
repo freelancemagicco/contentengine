@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Freelancer Content Engine</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f6f5f0;
+    --bg-tertiary: #f0ede6;
+    --text-primary: #1a1a18;
+    --text-secondary: #6b6b66;
+    --text-tertiary: #9e9e98;
+    --border-light: rgba(0,0,0,0.1);
+    --border-mid: rgba(0,0,0,0.18);
+    --border-strong: rgba(0,0,0,0.28);
+    --green: #1D9E75;
+    --green-dark: #0F6E56;
+    --green-deep: #085041;
+    --green-light: #E1F5EE;
+    --green-mid: #9FE1CB;
+    --green-border: #5DCAA5;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1e1e1c;
+      --bg-secondary: #252523;
+      --bg-tertiary: #2c2c2a;
+      --text-primary: #f0ede6;
+      --text-secondary: #a0a09a;
+      --text-tertiary: #6b6b66;
+      --border-light: rgba(255,255,255,0.08);
+      --border-mid: rgba(255,255,255,0.14);
+      --border-strong: rgba(255,255,255,0.22);
+      --green-light: #04342C;
+      --green-mid: #085041;
+      --green-border: #0F6E56;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  .topbar {
+    background: var(--bg-primary);
+    border-bottom: 0.5px solid var(--border-light);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-icon { font-size: 22px; color: var(--green); }
+  .topbar h1 { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+  .topbar span { font-size: 13px; color: var(--text-secondary); margin-left: 2px; }
+
+  .container { max-width: 680px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .hero { text-align: center; padding: 3rem 1rem 2.5rem; }
+  .hero-icon { width: 64px; height: 64px; border-radius: 18px; background: var(--green-light); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; }
+  .hero-icon i { font-size: 32px; color: var(--green); }
+  .hero h2 { font-size: 26px; font-weight: 600; margin-bottom: 0.75rem; }
+  .hero p { font-size: 15px; color: var(--text-secondary); line-height: 1.65; max-width: 420px; margin: 0 auto 2rem; }
+
+  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 2rem; }
+  .feature-card { background: var(--bg-primary); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 14px; text-align: left; }
+  .feature-card i { font-size: 20px; color: var(--green); margin-bottom: 8px; display: block; }
+  .feature-card p { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+  .feature-card strong { display: block; font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 3px; }
+
+  .btn-primary { display: inline-flex; align-items: center; gap: 6px; background: var(--green); color: #fff; border: none; border-radius: var(--radius-md); padding: 11px 24px; font-size: 15px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+  .btn-primary:hover { background: var(--green-dark); }
+  .btn-secondary { display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--text-primary); border: 0.5px solid var(--border-mid); border-radius: var(--radius-md); padding: 11px 20px; font-size: 14px; cursor: pointer; transition: background 0.15s; }
+  .btn-secondary:hover { background: var(--bg-secondary); }
+
+  .step-bar { display: flex; align-items: center; gap: 0; margin-bottom: 2rem; }
+  .step-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-tertiary); }
+  .step-item.active { color: var(--green); font-weight: 500; }
+  .step-item.done { color: var(--text-secondary); }
+  .step-num { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid currentColor; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+  .step-item.active .step-num { background: var(--green); border-color: var(--green); color: #fff; }
+  .step-item.done .step-num { background: var(--green-mid); border-color: var(--green-mid); color: var(--green-deep); }
+  .step-sep { width: 24px; height: 1px; background: var(--border-light); margin: 0 4px; }
+
+  .card { background: var(--bg-primary); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem; }
+
+  .section-title { font-size: 18px; font-weight: 600; margin-bottom: 0.25rem; }
+  .section-sub { font-size: 14px; color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.5; }
+
+  .field-group { margin-bottom: 1.25rem; }
+  .field-group:last-child { margin-bottom: 0; }
+  label.field-label { font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 6px; }
+  input[type="text"], textarea, select {
+    width: 100%;
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    padding: 9px 13px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text-primary);
+    transition: border-color 0.15s;
+    appearance: auto;
+  }
+  input[type="text"]:focus, textarea:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(29,158,117,0.12); }
+  textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+  .tag-grid { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 6px; }
+  .tag { padding: 6px 14px; border-radius: 999px; font-size: 13px; border: 0.5px solid var(--border-mid); cursor: pointer; color: var(--text-secondary); background: var(--bg-secondary); transition: all 0.15s; user-select: none; }
+  .tag:hover { border-color: var(--green); color: var(--green-dark); }
+  .tag.selected { background: var(--green-light); border-color: var(--green); color: var(--green-dark); font-weight: 500; }
+
+  .bucket-card { background: var(--bg-primary); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: all 0.15s; }
+  .bucket-card:hover { border-color: var(--border-mid); }
+  .bucket-card.selected { border-color: var(--green); background: var(--green-light); }
+  .bucket-card .bucket-icon { font-size: 20px; color: var(--green); margin-top: 1px; flex-shrink: 0; }
+  .bucket-card h3 { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+  .bucket-card p { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+  .bucket-check { margin-left: auto; font-size: 18px; color: var(--green); opacity: 0; transition: opacity 0.15s; flex-shrink: 0; padding-top: 2px; }
+  .bucket-card.selected .bucket-check { opacity: 1; }
+
+  .nav-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.5rem; }
+
+  .loading-state { text-align: center; padding: 5rem 1rem; }
+  .spinner { width: 36px; height: 36px; border: 2px solid var(--border-light); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-state p { font-size: 14px; color: var(--text-secondary); }
+
+  .dashboard-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; }
+  .dashboard-header h2 { font-size: 22px; font-weight: 600; }
+  .dashboard-header p { font-size: 14px; color: var(--text-secondary); margin-top: 2px; }
+
+  .tab-row { display: flex; gap: 2px; background: var(--bg-secondary); border-radius: var(--radius-md); padding: 3px; margin-bottom: 1.5rem; }
+  .tab { flex: 1; text-align: center; padding: 8px; font-size: 13px; border-radius: 6px; cursor: pointer; color: var(--text-secondary); transition: all 0.15s; border: none; background: transparent; font-family: inherit; }
+  .tab.active { background: var(--bg-primary); color: var(--text-primary); font-weight: 500; border: 0.5px solid var(--border-light); }
+
+  .refresh-banner { background: var(--green-light); border: 0.5px solid var(--green-border); border-radius: var(--radius-md); padding: 11px 14px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; gap: 12px; }
+  .refresh-banner p { font-size: 13px; color: var(--green-dark); }
+  .refresh-banner button { font-size: 13px; color: var(--green-dark); background: transparent; border: 0.5px solid var(--green-border); border-radius: var(--radius-md); padding: 6px 14px; cursor: pointer; font-weight: 500; white-space: nowrap; font-family: inherit; }
+  .refresh-banner button:hover { background: var(--green-mid); }
+
+  .filter-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .filter-row label { font-size: 13px; color: var(--text-secondary); }
+  .filter-row select { width: auto; font-size: 13px; padding: 6px 10px; }
+
+  .idea-card { background: var(--bg-primary); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 8px; transition: border-color 0.15s; }
+  .idea-card:hover { border-color: var(--border-mid); }
+  .idea-bucket { font-size: 11px; font-weight: 500; color: var(--green-dark); background: var(--green-light); border-radius: 999px; padding: 3px 10px; display: inline-block; margin-bottom: 8px; }
+  .idea-title { font-size: 14px; font-weight: 500; margin-bottom: 5px; line-height: 1.45; }
+  .idea-angle { font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+  .idea-actions { display: flex; gap: 7px; margin-top: 10px; }
+  .idea-actions button { font-size: 12px; padding: 5px 12px; border-radius: var(--radius-md); border: 0.5px solid var(--border-light); background: transparent; cursor: pointer; color: var(--text-secondary); transition: all 0.15s; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; }
+  .idea-actions button:hover { background: var(--bg-secondary); border-color: var(--border-mid); }
+  .idea-actions .draft-btn { color: var(--green-dark); border-color: var(--green-mid); }
+  .idea-actions .draft-btn:hover { background: var(--green-light); }
+
+  .load-more-row { text-align: center; margin-top: 1.25rem; }
+
+  .cal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  @media (max-width: 500px) { .cal-grid { grid-template-columns: repeat(2, 1fr); } }
+  .cal-week { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 10px; }
+  .cal-week-label { font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .cal-slot { border-left: 2px solid var(--green-border); padding: 6px 8px; background: var(--bg-primary); border-radius: 0 var(--radius-md) var(--radius-md) 0; margin-bottom: 6px; cursor: pointer; transition: border-color 0.15s; }
+  .cal-slot:hover { border-color: var(--green-dark); }
+  .cs-bucket { font-size: 10px; color: var(--green-dark); font-weight: 500; }
+  .cs-title { font-size: 12px; line-height: 1.4; color: var(--text-primary); margin-top: 2px; }
+
+  .draft-panel { background: var(--bg-primary); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 1.25rem; margin-top: 1rem; }
+  .draft-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+  .draft-panel-header h3 { font-size: 15px; font-weight: 500; }
+  .close-btn { background: none; border: none; cursor: pointer; color: var(--text-secondary); font-size: 20px; display: flex; align-items: center; }
+  .draft-content { font-size: 14px; line-height: 1.75; color: var(--text-primary); white-space: pre-wrap; }
+  .draft-actions { display: flex; gap: 8px; margin-top: 1rem; }
+
+  .buckets-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media (max-width: 500px) { .buckets-grid { grid-template-columns: 1fr; } }
+  .bucket-stat { background: var(--bg-primary); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 1rem 1.25rem; }
+  .bucket-stat-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .bucket-stat-header i { font-size: 18px; color: var(--green); }
+  .bucket-stat-header span { font-size: 14px; font-weight: 500; flex: 1; }
+  .bucket-stat-count { font-size: 12px; background: var(--green-light); color: var(--green-dark); padding: 2px 9px; border-radius: 999px; font-weight: 500; }
+  .bucket-stat p { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+  .profile-section { margin-bottom: 1.25rem; }
+  .profile-section label { font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px; }
+  .profile-section .value { font-size: 14px; font-weight: 500; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .chip { font-size: 12px; padding: 3px 10px; border-radius: 999px; background: var(--bg-secondary); border: 0.5px solid var(--border-light); color: var(--text-secondary); }
+  .bucket-chip { background: var(--green-light); border-color: var(--green-mid); color: var(--green-dark); font-weight: 500; }
+
+  .empty-state { text-align: center; padding: 2.5rem; color: var(--text-secondary); font-size: 14px; }
+  .api-note { font-size: 12px; color: var(--text-tertiary); background: var(--bg-secondary); border-radius: var(--radius-md); padding: 10px 14px; margin-top: 1rem; line-height: 1.6; }
+  .api-note a { color: var(--green-dark); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <i class="ti ti-antenna-bars-5 topbar-icon" aria-hidden="true"></i>
+  <h1>Content Engine <span>for freelancers</span></h1>
+</div>
+
+<div class="container">
+
+<!-- SCREEN: Welcome -->
+<div class="screen active" id="screen-welcome">
+  <div class="hero">
+    <div class="hero-icon"><i class="ti ti-bulb" aria-hidden="true"></i></div>
+    <h2>Never run out of things to post</h2>
+    <p>Answer a few questions about your work and get a full month of tailored post ideas — refreshed every month.</p>
+    <button class="btn-primary" onclick="goTo('screen-setup-1')">Get started <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+  </div>
+  <div class="features">
+    <div class="feature-card"><i class="ti ti-layout-columns" aria-hidden="true"></i><strong>Content buckets</strong><p>Your personal posting themes, chosen to match your goals.</p></div>
+    <div class="feature-card"><i class="ti ti-sparkles" aria-hidden="true"></i><strong>AI-generated ideas</strong><p>20+ fresh ideas every month, tailored to your niche.</p></div>
+    <div class="feature-card"><i class="ti ti-calendar" aria-hidden="true"></i><strong>Monthly calendar</strong><p>Ideas laid out week-by-week so you always know what's next.</p></div>
+  </div>
+  <div class="api-note">
+    ⚠️ This tool uses the Anthropic API. To use it, open this file and replace <code>YOUR_API_KEY_HERE</code> with your API key from <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. Never share your key publicly.
+  </div>
+</div>
+
+<!-- SCREEN: Step 1 -->
+<div class="screen" id="screen-setup-1">
+  <div class="step-bar">
+    <div class="step-item active" id="si1"><div class="step-num">1</div> About you</div>
+    <div class="step-sep"></div>
+    <div class="step-item" id="si2"><div class="step-num">2</div> Buckets</div>
+    <div class="step-sep"></div>
+    <div class="step-item" id="si3"><div class="step-num">3</div> Style</div>
+  </div>
+
+  <div class="section-title">About you</div>
+  <div class="section-sub">Tell us about your work so we can personalise your content ideas.</div>
+
+  <div class="card">
+    <div class="field-group">
+      <label class="field-label" for="name">Your name</label>
+      <input type="text" id="name" placeholder="e.g. Sarah Chen" />
+    </div>
+    <div class="field-group">
+      <label class="field-label" for="role">What do you do? <span style="color:var(--text-tertiary)">(be specific)</span></label>
+      <input type="text" id="role" placeholder="e.g. UX designer for B2B SaaS startups" />
+    </div>
+    <div class="field-group">
+      <label class="field-label" for="audience">Who is your target audience?</label>
+      <input type="text" id="audience" placeholder="e.g. Founders and product managers at early-stage startups" />
+    </div>
+    <div class="field-group">
+      <label class="field-label">Platforms you post on</label>
+      <div class="tag-grid" id="platforms">
+        <div class="tag" data-val="LinkedIn">LinkedIn</div>
+        <div class="tag" data-val="Twitter/X">Twitter/X</div>
+        <div class="tag" data-val="Instagram">Instagram</div>
+        <div class="tag" data-val="Threads">Threads</div>
+        <div class="tag" data-val="TikTok">TikTok</div>
+        <div class="tag" data-val="YouTube">YouTube</div>
+        <div class="tag" data-val="Substack">Substack</div>
+        <div class="tag" data-val="Bluesky">Bluesky</div>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Main goal with posting</label>
+      <div class="tag-grid" id="goals">
+        <div class="tag" data-val="Attract clients">Attract clients</div>
+        <div class="tag" data-val="Build authority">Build authority</div>
+        <div class="tag" data-val="Grow a network">Grow a network</div>
+        <div class="tag" data-val="Land speaking gigs">Land speaking gigs</div>
+        <div class="tag" data-val="Promote a product">Promote a product</div>
+        <div class="tag" data-val="Share knowledge">Share knowledge</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <button class="btn-secondary" onclick="goTo('screen-welcome')">Back</button>
+    <button class="btn-primary" onclick="goStep2()">Next <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+  </div>
+</div>
+
+<!-- SCREEN: Step 2 -->
+<div class="screen" id="screen-setup-2">
+  <div class="step-bar">
+    <div class="step-item done" id="si1b"><div class="step-num">1</div> About you</div>
+    <div class="step-sep"></div>
+    <div class="step-item active" id="si2b"><div class="step-num">2</div> Buckets</div>
+    <div class="step-sep"></div>
+    <div class="step-item" id="si3b"><div class="step-num">3</div> Style</div>
+  </div>
+
+  <div class="section-title">Your content buckets</div>
+  <div class="section-sub">Pick 3–5 themes to post about. These become the pillars of your content strategy.</div>
+
+  <div id="buckets-list"></div>
+
+  <div class="card" style="margin-top:0.5rem">
+    <label class="field-label" for="custom-bucket">Add a custom bucket</label>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="custom-bucket" placeholder="e.g. Behind the scenes" style="flex:1" />
+      <button class="btn-secondary" onclick="addCustomBucket()">Add</button>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <button class="btn-secondary" onclick="goTo('screen-setup-1')">Back</button>
+    <button class="btn-primary" onclick="goStep3()">Next <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+  </div>
+</div>
+
+<!-- SCREEN: Step 3 -->
+<div class="screen" id="screen-setup-3">
+  <div class="step-bar">
+    <div class="step-item done"><div class="step-num">1</div> About you</div>
+    <div class="step-sep"></div>
+    <div class="step-item done"><div class="step-num">2</div> Buckets</div>
+    <div class="step-sep"></div>
+    <div class="step-item active"><div class="step-num">3</div> Style</div>
+  </div>
+
+  <div class="section-title">Voice & posting style</div>
+  <div class="section-sub">Help us match ideas to how you actually communicate.</div>
+
+  <div class="card">
+    <div class="field-group">
+      <label class="field-label">Tone of voice</label>
+      <div class="tag-grid" id="tones">
+        <div class="tag" data-val="Conversational">Conversational</div>
+        <div class="tag" data-val="Educational">Educational</div>
+        <div class="tag" data-val="Opinionated">Opinionated</div>
+        <div class="tag" data-val="Inspirational">Inspirational</div>
+        <div class="tag" data-val="Humorous">Humorous</div>
+        <div class="tag" data-val="Authoritative">Authoritative</div>
+        <div class="tag" data-val="Vulnerable/honest">Vulnerable/honest</div>
+        <div class="tag" data-val="Data-driven">Data-driven</div>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Posts per week</label>
+      <div class="tag-grid" id="freq">
+        <div class="tag" data-val="1">1</div>
+        <div class="tag" data-val="2–3">2–3</div>
+        <div class="tag" data-val="4–5">4–5</div>
+        <div class="tag" data-val="Daily">Daily</div>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label" for="avoid">Anything to avoid?</label>
+      <textarea id="avoid" placeholder="e.g. Politics, my personal life, competitors by name..."></textarea>
+    </div>
+  </div>
+
+  <div class="nav-row">
+    <button class="btn-secondary" onclick="goTo('screen-setup-2')">Back</button>
+    <button class="btn-primary" onclick="generateIdeas()"><i class="ti ti-sparkles" aria-hidden="true"></i> Generate my content plan</button>
+  </div>
+</div>
+
+<!-- SCREEN: Loading -->
+<div class="screen" id="screen-loading">
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p id="loading-msg">Building your content strategy...</p>
+  </div>
+</div>
+
+<!-- SCREEN: Dashboard -->
+<div class="screen" id="screen-dashboard">
+  <div class="dashboard-header">
+    <div>
+      <h2 id="dash-greeting">Your content plan</h2>
+      <p id="dash-sub">This month's ideas</p>
+    </div>
+    <button class="btn-secondary" onclick="showProfile()" style="font-size:13px;padding:8px 14px"><i class="ti ti-settings" aria-hidden="true"></i> Profile</button>
+  </div>
+
+  <div id="refresh-banner" class="refresh-banner" style="display:none">
+    <p><i class="ti ti-refresh" aria-hidden="true"></i> It's been a month — time for fresh ideas!</p>
+    <button onclick="generateIdeas()">Refresh now</button>
+  </div>
+
+  <div class="tab-row">
+    <button class="tab active" id="tab-ideas" onclick="switchTab('ideas')">Post ideas</button>
+    <button class="tab" id="tab-calendar" onclick="switchTab('calendar')">Calendar</button>
+    <button class="tab" id="tab-buckets" onclick="switchTab('buckets')">My buckets</button>
+  </div>
+
+  <div id="tab-content-ideas">
+    <div class="filter-row">
+      <label>Filter by bucket:</label>
+      <select id="bucket-filter" onchange="renderIdeas()">
+        <option value="all">All buckets</option>
+      </select>
+    </div>
+    <div id="ideas-list"></div>
+    <div class="load-more-row">
+      <button class="btn-secondary" id="more-btn" onclick="generateMoreIdeas()" style="font-size:13px"><i class="ti ti-plus" aria-hidden="true"></i> Generate more ideas</button>
+    </div>
+  </div>
+
+  <div id="tab-content-calendar" style="display:none">
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+
+  <div id="tab-content-buckets" style="display:none">
+    <div class="buckets-grid" id="buckets-display"></div>
+  </div>
+
+  <div id="draft-area" style="display:none">
+    <div class="draft-panel">
+      <div class="draft-panel-header">
+        <h3>Draft post</h3>
+        <button class="close-btn" onclick="closeDraft()"><i class="ti ti-x" aria-hidden="true"></i></button>
+      </div>
+      <div class="draft-content" id="draft-content">Writing your post...</div>
+      <div class="draft-actions">
+        <button class="btn-secondary" style="font-size:13px" onclick="copyDraft()"><i class="ti ti-copy" aria-hidden="true"></i> Copy</button>
+        <button class="btn-secondary" style="font-size:13px" onclick="closeDraft()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: Profile -->
+<div class="screen" id="screen-profile">
+  <div class="dashboard-header">
+    <h2>Your profile</h2>
+    <button class="btn-secondary" onclick="goTo('screen-dashboard')" style="font-size:13px;padding:8px 14px"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back</button>
+  </div>
+  <div class="card" id="profile-view"></div>
+  <div class="nav-row" style="margin-top:1rem">
+    <button class="btn-secondary" onclick="resetAll()" style="color:#c0392b;border-color:#e0a0a0">Reset everything</button>
+    <button class="btn-primary" onclick="editProfile()">Edit profile</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+const API_KEY = 'YOUR_API_KEY_HERE';
+const API_URL = 'https://api.anthropic.com/v1/messages';
+const STORAGE_KEY = 'freelancer_content_engine_v1';
+
+let state = {
+  profile: { name:'', role:'', audience:'', platforms:[], goals:[], tone:[], frequency:'', avoid:'' },
+  buckets: [],
+  ideas: [],
+  calendar: [],
+  generatedAt: null
+};
+
+let selectedBuckets = [];
+let customBuckets = [];
+
+const DEFAULT_BUCKETS = [
+  { icon:'ti-bulb', name:'Lessons learned', desc:'Insights from your work, mistakes, and real experience.' },
+  { icon:'ti-tools', name:'Tips & how-tos', desc:'Practical advice your audience can apply immediately.' },
+  { icon:'ti-user-circle', name:'Behind the scenes', desc:'Your process, tools, and day-to-day freelance life.' },
+  { icon:'ti-chart-line', name:'Results & case studies', desc:'Outcomes you\'ve achieved (anonymised if needed).' },
+  { icon:'ti-messages', name:'Opinions & takes', desc:'Your perspective on trends, news, or industry debates.' },
+  { icon:'ti-heart', name:'Client stories', desc:'Wins, challenges, and relationships from client work.' },
+  { icon:'ti-book', name:'Resources & recommendations', desc:'Tools, books, or services you genuinely use.' },
+  { icon:'ti-trending-up', name:'Industry trends', desc:'Commentary on what\'s changing in your space.' },
+  { icon:'ti-trophy', name:'Wins & milestones', desc:'Celebrating achievements, big or small.' },
+  { icon:'ti-question-mark', name:'Myth-busting', desc:'Common misconceptions in your field, corrected.' },
+];
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) { state = JSON.parse(raw); return true; }
+  } catch(e) {}
+  return false;
+}
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function setupTags(id) {
+  document.getElementById(id).querySelectorAll('.tag').forEach(t => {
+    t.onclick = () => t.classList.toggle('selected');
+  });
+}
+function getSelected(id) {
+  return [...document.getElementById(id).querySelectorAll('.tag.selected')].map(t => t.dataset.val);
+}
+function preselectTags(id, vals) {
+  document.getElementById(id).querySelectorAll('.tag').forEach(t => {
+    if (vals.includes(t.dataset.val)) t.classList.add('selected');
+  });
+}
+
+function renderBuckets() {
+  const all = [...DEFAULT_BUCKETS, ...customBuckets];
+  document.getElementById('buckets-list').innerHTML = all.map(b => `
+    <div class="bucket-card ${selectedBuckets.includes(b.name)?'selected':''}" onclick="toggleBucket(this, '${b.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">
+      <i class="ti ${b.icon} bucket-icon" aria-hidden="true"></i>
+      <div style="flex:1"><h3>${b.name}</h3><p>${b.desc}</p></div>
+      <i class="ti ti-check bucket-check" aria-hidden="true"></i>
+    </div>
+  `).join('');
+}
+
+function toggleBucket(el, name) {
+  const idx = selectedBuckets.indexOf(name);
+  if (idx > -1) { selectedBuckets.splice(idx,1); el.classList.remove('selected'); }
+  else { selectedBuckets.push(name); el.classList.add('selected'); }
+}
+
+function addCustomBucket() {
+  const inp = document.getElementById('custom-bucket');
+  const val = inp.value.trim();
+  if (!val) return;
+  customBuckets.push({ icon:'ti-star', name:val, desc:'Your custom content theme.' });
+  selectedBuckets.push(val);
+  inp.value = '';
+  renderBuckets();
+}
+
+function goStep2() {
+  const name = document.getElementById('name').value.trim();
+  const role = document.getElementById('role').value.trim();
+  const audience = document.getElementById('audience').value.trim();
+  if (!name || !role || !audience) { alert('Please fill in your name, role, and target audience.'); return; }
+  state.profile.name = name;
+  state.profile.role = role;
+  state.profile.audience = audience;
+  state.profile.platforms = getSelected('platforms');
+  state.profile.goals = getSelected('goals');
+  renderBuckets();
+  goTo('screen-setup-2');
+}
+
+function goStep3() {
+  if (selectedBuckets.length < 2) { alert('Please select at least 2 content buckets.'); return; }
+  state.buckets = selectedBuckets;
+  goTo('screen-setup-3');
+  setupTags('tones');
+  setupTags('freq');
+  if (state.profile.tone.length) preselectTags('tones', state.profile.tone);
+  if (state.profile.frequency) preselectTags('freq', [state.profile.frequency]);
+}
+
+async function generateIdeas() {
+  if (API_KEY === 'YOUR_API_KEY_HERE') {
+    alert('Please add your Anthropic API key to the HTML file first.\n\nOpen the file in a text editor, find YOUR_API_KEY_HERE, and replace it with your key from console.anthropic.com');
+    return;
+  }
+  state.profile.tone = getSelected('tones');
+  const freqSel = getSelected('freq');
+  state.profile.frequency = freqSel.length ? freqSel[0] : '2–3';
+  state.profile.avoid = document.getElementById('avoid') ? document.getElementById('avoid').value : state.profile.avoid;
+
+  goTo('screen-loading');
+  const msgs = ['Building your content strategy...','Thinking up post ideas...','Arranging your calendar...','Almost there...'];
+  let mi = 0;
+  const intv = setInterval(() => { document.getElementById('loading-msg').textContent = msgs[mi++ % msgs.length]; }, 2000);
+
+  const prompt = `You are a social media content strategist for freelancers. Generate a month of content ideas.
+
+Freelancer profile:
+- Name: ${state.profile.name}
+- Role: ${state.profile.role}
+- Target audience: ${state.profile.audience}
+- Platforms: ${state.profile.platforms.join(', ') || 'general social media'}
+- Goals: ${state.profile.goals.join(', ') || 'grow visibility'}
+- Tone: ${state.profile.tone.join(', ') || 'conversational'}
+- Posting frequency: ${state.profile.frequency} posts/week
+- Topics to avoid: ${state.profile.avoid || 'none'}
+- Content buckets: ${state.buckets.join(', ')}
+
+Generate EXACTLY 20 post ideas spread across the buckets. Return ONLY valid JSON with no markdown fences or explanation:
+{
+  "ideas": [
+    { "bucket": "bucket name", "title": "compelling post hook (max 15 words)", "angle": "one sentence on the specific angle or story to tell" }
+  ],
+  "calendar": [
+    { "week": 1, "slot": 1, "ideaIndex": 0 },
+    { "week": 1, "slot": 2, "ideaIndex": 3 }
+  ]
+}
+Calendar: assign idea indices (0–19) to 4 weeks with up to 3 slots each (12 entries total). Spread ideas evenly across buckets per week.`;
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] })
+    });
+    clearInterval(intv);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const text = data.content.map(c => c.text||'').join('');
+    const parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
+    state.ideas = parsed.ideas;
+    state.calendar = parsed.calendar;
+    state.generatedAt = Date.now();
+    saveState();
+    showDashboard();
+  } catch(e) {
+    clearInterval(intv);
+    console.error(e);
+    alert('Something went wrong: ' + e.message + '\n\nCheck your API key and try again.');
+    goTo('screen-setup-3');
+  }
+}
+
+async function generateMoreIdeas() {
+  const btn = document.getElementById('more-btn');
+  btn.textContent = 'Generating...';
+  btn.disabled = true;
+  const existing = state.ideas.map(i => i.title).join('; ');
+  const prompt = `Generate 10 MORE fresh post ideas for this freelancer. Do NOT repeat these existing ideas: ${existing}
+
+Profile: ${state.profile.role}, audience: ${state.profile.audience}, tone: ${state.profile.tone.join(', ')}, buckets: ${state.buckets.join(', ')}.
+
+Return ONLY valid JSON: {"ideas":[{"bucket":"...","title":"...","angle":"..."}]}`;
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await res.json();
+    const text = data.content.map(c=>c.text||'').join('');
+    const parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
+    state.ideas = [...state.ideas, ...parsed.ideas];
+    saveState();
+    renderIdeas();
+  } catch(e) { alert('Could not generate more ideas. Please try again.'); }
+  btn.innerHTML = '<i class="ti ti-plus"></i> Generate more ideas';
+  btn.disabled = false;
+}
+
+async function draftPost(idx) {
+  const idea = state.ideas[idx];
+  const area = document.getElementById('draft-area');
+  area.style.display = 'block';
+  document.getElementById('draft-content').textContent = 'Writing your post draft...';
+  area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  const prompt = `Write a social media post for a freelancer.
+
+Details:
+- Role: ${state.profile.role}
+- Audience: ${state.profile.audience}
+- Platforms: ${state.profile.platforms.join(', ') || 'LinkedIn'}
+- Tone: ${state.profile.tone.join(', ') || 'conversational'}
+- Hook/title: "${idea.title}"
+- Angle: ${idea.angle}
+- Bucket: ${idea.bucket}
+
+Write a complete, ready-to-post draft. Start with a strong hook. Keep it authentic and in the stated tone. For LinkedIn, use short paragraphs. No hashtags unless they genuinely add value. Output the post only — no preamble.`;
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 700, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await res.json();
+    document.getElementById('draft-content').textContent = data.content.map(c=>c.text||'').join('');
+  } catch(e) { document.getElementById('draft-content').textContent = 'Could not generate draft. Please try again.'; }
+}
+
+function closeDraft() { document.getElementById('draft-area').style.display = 'none'; }
+function copyDraft() {
+  navigator.clipboard.writeText(document.getElementById('draft-content').textContent).then(() => {
+    const btn = document.querySelector('.draft-actions button');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="ti ti-check"></i> Copied!';
+    setTimeout(() => btn.innerHTML = orig, 2000);
+  });
+}
+
+function showDashboard() {
+  goTo('screen-dashboard');
+  document.getElementById('dash-greeting').textContent = `Hey ${state.profile.name.split(' ')[0]} 👋`;
+  document.getElementById('dash-sub').textContent = `Here's your content plan for this month`;
+  populateBucketFilter();
+  renderIdeas();
+  renderCalendar();
+  renderBucketsTab();
+  const days = state.generatedAt ? (Date.now() - state.generatedAt) / 86400000 : 0;
+  document.getElementById('refresh-banner').style.display = days > 28 ? 'flex' : 'none';
+}
+
+function switchTab(tab) {
+  ['ideas','calendar','buckets'].forEach(t => {
+    document.getElementById(`tab-content-${t}`).style.display = t===tab ? 'block' : 'none';
+    document.getElementById(`tab-${t}`).classList.toggle('active', t===tab);
+  });
+  closeDraft();
+}
+
+function populateBucketFilter() {
+  const sel = document.getElementById('bucket-filter');
+  sel.innerHTML = '<option value="all">All buckets</option>';
+  state.buckets.forEach(b => { const o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o); });
+}
+
+function renderIdeas() {
+  const filter = document.getElementById('bucket-filter').value;
+  const ideas = filter === 'all' ? state.ideas : state.ideas.filter(i => i.bucket === filter);
+  const el = document.getElementById('ideas-list');
+  if (!ideas.length) { el.innerHTML = '<div class="empty-state">No ideas found. Generate more above!</div>'; return; }
+  el.innerHTML = ideas.map(idea => {
+    const idx = state.ideas.indexOf(idea);
+    return `<div class="idea-card">
+      <div class="idea-bucket">${idea.bucket}</div>
+      <div class="idea-title">${idea.title}</div>
+      <div class="idea-angle">${idea.angle}</div>
+      <div class="idea-actions">
+        <button class="draft-btn" onclick="draftPost(${idx})"><i class="ti ti-pencil" aria-hidden="true"></i> Draft this post</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCalendar() {
+  const el = document.getElementById('cal-grid');
+  el.innerHTML = [1,2,3,4].map(w => {
+    const slots = state.calendar.filter(c => c.week === w);
+    const slotsHtml = slots.map(s => {
+      const idea = state.ideas[s.ideaIndex];
+      if (!idea) return '';
+      return `<div class="cal-slot" onclick="draftPost(${s.ideaIndex})">
+        <div class="cs-bucket">${idea.bucket}</div>
+        <div class="cs-title">${idea.title}</div>
+      </div>`;
+    }).join('');
+    return `<div class="cal-week"><div class="cal-week-label">Week ${w}</div>${slotsHtml || '<div style="font-size:12px;color:var(--text-tertiary);padding:6px 0">No posts</div>'}</div>`;
+  }).join('');
+}
+
+function renderBucketsTab() {
+  const all = [...DEFAULT_BUCKETS, ...customBuckets].filter(b => state.buckets.includes(b.name));
+  document.getElementById('buckets-display').innerHTML = all.map(b => {
+    const count = state.ideas.filter(i => i.bucket === b.name).length;
+    return `<div class="bucket-stat">
+      <div class="bucket-stat-header"><i class="ti ${b.icon}" aria-hidden="true"></i><span>${b.name}</span><span class="bucket-stat-count">${count} idea${count!==1?'s':''}</span></div>
+      <p>${b.desc}</p>
+    </div>`;
+  }).join('');
+}
+
+function showProfile() {
+  const p = state.profile;
+  document.getElementById('profile-view').innerHTML = `
+    <div class="profile-section"><label>Name</label><div class="value">${p.name}</div></div>
+    <div class="profile-section"><label>Role</label><div class="value">${p.role}</div></div>
+    <div class="profile-section"><label>Target audience</label><div class="value">${p.audience}</div></div>
+    <div class="profile-section"><label>Content buckets</label><div class="chip-row">${state.buckets.map(b=>`<span class="chip bucket-chip">${b}</span>`).join('')}</div></div>
+    <div class="profile-section"><label>Platforms</label><div class="chip-row">${(p.platforms.length?p.platforms:['Not specified']).map(x=>`<span class="chip">${x}</span>`).join('')}</div></div>
+    <div class="profile-section"><label>Tone</label><div class="chip-row">${(p.tone.length?p.tone:['Not specified']).map(x=>`<span class="chip">${x}</span>`).join('')}</div></div>
+    <div class="profile-section"><label>Posting frequency</label><div class="value">${p.frequency||'Not specified'} per week</div></div>
+  `;
+  goTo('screen-profile');
+}
+
+function editProfile() {
+  document.getElementById('name').value = state.profile.name;
+  document.getElementById('role').value = state.profile.role;
+  document.getElementById('audience').value = state.profile.audience;
+  setupTags('platforms'); setupTags('goals');
+  preselectTags('platforms', state.profile.platforms);
+  preselectTags('goals', state.profile.goals);
+  selectedBuckets = [...state.buckets];
+  goTo('screen-setup-1');
+}
+
+function resetAll() {
+  if (!confirm('This will delete your profile and all generated ideas. Continue?')) return;
+  state = { profile:{name:'',role:'',audience:'',platforms:[],goals:[],tone:[],frequency:'',avoid:''}, buckets:[], ideas:[], calendar:[], generatedAt:null };
+  selectedBuckets = []; customBuckets = [];
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  goTo('screen-welcome');
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  setupTags('platforms');
+  setupTags('goals');
+  if (loadState() && state.ideas && state.ideas.length > 0) {
+    showDashboard();
+  }
+});
+</script>
+</body>
+</html>
