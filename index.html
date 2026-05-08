@@ -234,7 +234,7 @@
     <div class="feature-card"><i class="ti ti-calendar" aria-hidden="true"></i><strong>Monthly calendar</strong><p>Ideas laid out week-by-week so you always know what's next.</p></div>
   </div>
   <div class="api-note">
-    ⚠️ This tool uses the Anthropic API. To use it, open this file and replace <code>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</code> with your API key from <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. Never share your key publicly.
+    ⚠️ This tool uses the Anthropic API. To use it, open this file and replace <code>YOUR_API_KEY_HERE</code> with your API key from <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. Never share your key publicly.
   </div>
 </div>
 
@@ -454,7 +454,7 @@
 </div>
 
 <script>
-const API_KEY = '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';
+const API_KEY = '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';
 const API_URL = 'https://api.anthropic.com/v1/messages';
 const STORAGE_KEY = 'freelancer_content_engine_v1';
 
@@ -565,7 +565,7 @@ function goStep3() {
 }
 
 async function generateIdeas() {
-  if (API_KEY === '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') {
+  if (API_KEY === 'YOUR_API_KEY_HERE') {
     alert('Please add your Anthropic API key to the HTML file first.\n\nOpen the file in a text editor, find YOUR_API_KEY_HERE, and replace it with your key from console.anthropic.com');
     return;
   }
